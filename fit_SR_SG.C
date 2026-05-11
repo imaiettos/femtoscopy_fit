@@ -71,7 +71,7 @@ const char* kT_labels[kNkT] = {
     "0.9 < k_{T} < 1.5 GeV"
 };
 
-void fit_DR_SG()
+void fit_SR_SG()
 {
     gStyle->SetOptStat(0);
 
@@ -82,12 +82,12 @@ void fit_DR_SG()
     double qmax_bkg = 2.5;
 
     gSystem->Exec(Form(
-        "mkdir -p results_DR_singlegaus/DR_sig%.2fto%.2f_bkg%.2fto%.2f",
+        "mkdir -p results_SR_singlegaus/SR_sig%.2fto%.2f_bkg%.2fto%.2f",
         qmin, qmax, qmin_bkg, qmax_bkg));
 
     // CSV output
     std::ofstream fout(Form(
-        "results_DR_singlegaus/DR_sig%.2fto%.2f_bkg%.2fto%.2f/fit_results_threefits.csv",
+        "results_SR_singlegaus/SR_sig%.2fto%.2f_bkg%.2fto%.2f/fit_results_threefits.csv",
         qmin, qmax, qmin_bkg, qmax_bkg));
 
     fout << "iMult,iKt,Ntrk_low,Ntrk_high,kT_low,kT_high,"
@@ -118,31 +118,31 @@ void fit_DR_SG()
             }
             Cq_avg->SetDirectory(nullptr); // detach from file
 
-            TF1 fSGDR("fSGDR", QUAD_expSource, qmin, qmax, 5);
+            TF1 fSG("fSG", QUAD_expSource, qmin, qmax, 5);
 
             // Initial parameters and limits
-            fSGDR.SetParameters(1.0, 0.2, 1.0, 2.0, 0.8);
+            fSG.SetParameters(1.0, 0.2, 1.0, 2.0, 0.8);
             //                  N    a    b    R    lambda    
-            fSGDR.SetParLimits(0,  0.5,  1.5);  // N
-            fSGDR.SetParLimits(1,  -0.05, 1.5);  // a
-            fSGDR.SetParLimits(2,  0.01, 1.01);  // b
-            fSGDR.SetParLimits(3,  0.1,  8.0);   // R
-            fSGDR.SetParLimits(4,  0.0,  2.5);   // lambda
+            fSG.SetParLimits(0,  0.5,  1.5);  // N
+            fSG.SetParLimits(1,  -0.05, 1.5);  // a
+            fSG.SetParLimits(2,  0.01, 1.01);  // b
+            fSG.SetParLimits(3,  0.1,  8.0);   // R
+            fSG.SetParLimits(4,  0.0,  2.5);   // lambda
 
             // Step 1: Background-only pre-fit in [qmin_bkg, qmax_bkg]
-            fSGDR.FixParameter(0, 1.0);  // fix N
-            fSGDR.FixParameter(4, 0.0);  // fix lambda
-            fSGDR.SetRange(qmin_bkg, qmax_bkg);
-            Cq_avg->Fit(&fSGDR, "R0Q");
+            fSG.FixParameter(0, 1.0);  // fix N
+            fSG.FixParameter(4, 0.0);  // fix lambda
+            fSG.SetRange(qmin_bkg, qmax_bkg);
+            Cq_avg->Fit(&fSG, "R0Q");
 
-            fSGDR.ReleaseParameter(0);   // release N
-            fSGDR.ReleaseParameter(4);   // release lambda
-            fSGDR.SetRange(qmin, qmax);
-            TFitResultPtr rSGDR = Cq_avg->Fit(&fSGDR, "RS");
+            fSG.ReleaseParameter(0);   // release N
+            fSG.ReleaseParameter(4);   // release lambda
+            fSG.SetRange(qmin, qmax);
+            TFitResultPtr rSG = Cq_avg->Fit(&fSG, "RS");
 
             // Read chi2 and ndf from the stored fit result (consistent source)
-            double chi2 = rSGDR->Chi2();
-            double ndf  = rSGDR->Ndf();
+            double chi2 = rSG->Chi2();
+            double ndf  = rSG->Ndf();
 
             // --- Canvas & drawing ---
             TCanvas* c = new TCanvas(Form("c_%d_%d", iM, iKt), "", 700, 700);
@@ -166,9 +166,9 @@ void fit_DR_SG()
 
             Cq_avg->Draw("E1");
 
-            fSGDR.SetLineColor(kRed);
-            fSGDR.SetLineWidth(1);
-            fSGDR.Draw("SAME");
+            fSG.SetLineColor(kRed);
+            fSG.SetLineWidth(1);
+            fSG.Draw("SAME");
 
             TLatex t;
             t.SetNDC();
@@ -191,15 +191,15 @@ void fit_DR_SG()
             leg.SetBorderSize(0);
             leg.SetTextSize(0.035);
             leg.AddEntry(Cq_avg, "C(q)", "lep");
-            leg.AddEntry(&fSGDR, "SR with single gauss bkg", "l");
+            leg.AddEntry(&fSG, "SR with single gauss bkg", "l");
             leg.Draw();
 
             DrawCMSHeavyIonLabel(); // FIX 12: no dummy arguments needed
 
             c->Update();
             c->SaveAs(Form(
-                "results_DR_singlegaus/DR_sig%.2fto%.2f_bkg%.2fto%.2f/"
-                "DR_bkg%.2fto%.2f_sig%.2fto%.2f_m%d_kT%d.pdf",
+                "results_SR_singlegaus/SR_sig%.2fto%.2f_bkg%.2fto%.2f/"
+                "SR_bkg%.2fto%.2f_sig%.2fto%.2f_m%d_kT%d.pdf",
                 qmin, qmax, qmin_bkg, qmax_bkg,
                 qmin, qmax, qmin_bkg, qmax_bkg,
                 iM, iKt));
@@ -218,7 +218,7 @@ void fit_DR_SG()
 
             // p[0]=N, p[1]=d (linear), p[2]=e (quadratic), p[3]=R, p[4]=lambda
             std::cout << Form(
-                "  SGDR: chi2/ndf=%.2f  N=%.3f  a=%.4f  b=%.4f  R=%.3f  lambda=%.3f\n",
+                "  SG: chi2/ndf=%.2f  N=%.3f  a=%.4f  b=%.4f  R=%.3f  lambda=%.3f\n",
                 chi2 / ndf, N, a_par, b_par, R, lambda);
 
             fout << iM    << "," << iKt   << ","
