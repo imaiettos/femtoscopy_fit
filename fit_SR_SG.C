@@ -207,14 +207,14 @@ void fit_SR_SG()
             delete c;
 
             // Extract fit parameters
-            double N      = fSGDR.GetParameter(0);
-            double Nerr   = fSGDR.GetParError(0);
-            double a_par  = fSGDR.GetParameter(1);
-            double b_par  = fSGDR.GetParameter(2);
-            double R      = fSGDR.GetParameter(3);
-            double Rerr   = fSGDR.GetParError(3);
-            double lambda = fSGDR.GetParameter(4);
-            double lamerr = fSGDR.GetParError(4);
+            double N      = fSG.GetParameter(0);
+            double Nerr   = fSG.GetParError(0);
+            double a_par  = fSG.GetParameter(1);
+            double b_par  = fSG.GetParameter(2);
+            double R      = fSG.GetParameter(3);
+            double Rerr   = fSG.GetParError(3);
+            double lambda = fSG.GetParameter(4);
+            double lamerr = fSG.GetParError(4);
 
             // p[0]=N, p[1]=d (linear), p[2]=e (quadratic), p[3]=R, p[4]=lambda
             std::cout << Form(
