@@ -94,8 +94,7 @@ void fit_DR_SG()
          << "Exp_N,Exp_N_err,Exp_R,Exp_R_err,Exp_lambda,Exp_lambda_err,"
          << "Exp_chi2,Exp_ndf\n";
 
-    // FIX 4: fhist will be explicitly closed at the end
-    TFile* fhist = TFile::Open("/Users/isabelamaiettosilverio/Documents/root/Femtoscopy_UPC_analysis/files/Cq_pT0p2.root", "READ");
+    TFile* fhist = TFile::Open("Cq_pT0p2.root", "READ");
     if (!fhist || fhist->IsZombie()) {
         std::cerr << "Cannot open Cq_pT0p2.root\n";
         return;
@@ -119,8 +118,6 @@ void fit_DR_SG()
             }
             Cq_avg->SetDirectory(nullptr); // detach from file
 
-            // FIX 6: Construct TF1 with the full signal range upfront;
-            // SetRange is used to restrict it during each fit step.
             TF1 fSGDR("fSGDR", QUAD_expSource, qmin, qmax, 5);
 
             // Initial parameters and limits
@@ -167,7 +164,6 @@ void fit_DR_SG()
             Cq_avg->GetYaxis()->SetTitleSize(0.05);
             Cq_avg->GetYaxis()->SetLabelSize(0.045);
 
-            // FIX 9: Draw only once (was called twice before)
             Cq_avg->Draw("E1");
 
             fSGDR.SetLineColor(kRed);
