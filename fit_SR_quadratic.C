@@ -71,7 +71,7 @@ const char* kT_labels[kNkT] = {
     "0.9 < k_{T} < 1.5 GeV"
 };
 
-void fit_DR_quadratic()
+void fit_SR_quadratic()
 {
     gStyle->SetOptStat(0);
 
@@ -82,12 +82,12 @@ void fit_DR_quadratic()
     double qmax_bkg = 2.5;
 
     gSystem->Exec(Form(
-        "mkdir -p results_DR_quadratic/DR_sig%.2fto%.2f_bkg%.2fto%.2f",
+        "mkdir -p results_SR_quadratic/SR_sig%.2fto%.2f_bkg%.2fto%.2f",
         qmin, qmax, qmin_bkg, qmax_bkg));
 
     // CSV output
     std::ofstream fout(Form(
-        "results_DR_quadratic/DR_sig%.2fto%.2f_bkg%.2fto%.2f/fit_results_threefits.csv",
+        "results_SR_quadratic/SR_sig%.2fto%.2f_bkg%.2fto%.2f/fit_results_threefits.csv",
         qmin, qmax, qmin_bkg, qmax_bkg));
 
     fout << "iMult,iKt,Ntrk_low,Ntrk_high,kT_low,kT_high,"
@@ -119,31 +119,30 @@ void fit_DR_quadratic()
             Cq_avg->SetDirectory(nullptr); // detach from file
 
             // SetRange is used to restrict it during each fit step.
-            TF1 fQDDR("fQDDR", QUAD_expSource, qmin, qmax, 5);
+            TF1 fQDDR("fQD", QUAD_expSource, qmin, qmax, 5);
 
             // Initial parameters and limits
-            fQDDR.SetParameters(1.0, 0.0, 0.0, 2.0, 0.8);      
-            fQDDR.SetParLimits(0,  0.5,  1.5);  // N
-            fQDDR.SetParLimits(1, -0.05, 0.05);  // d
-            fQDDR.SetParLimits(2, -0.01, 0.01);  // e
-            fQDDR.SetParLimits(3,  0.1,  8.0);   // R
-            fQDDR.SetParLimits(4,  0.0,  2.5);   // lambda
+            fQD.SetParameters(1.0, 0.0, 0.0, 2.0, 0.8);      
+            fQD.SetParLimits(0,  0.5,  1.5);  // N
+            fQD.SetParLimits(1, -0.05, 0.05);  // d
+            fQD.SetParLimits(2, -0.01, 0.01);  // e
+            fQD.SetParLimits(3,  0.1,  8.0);   // R
+            fQD.SetParLimits(4,  0.0,  2.5);   // lambda
 
             // Step 1: Background-only pre-fit in [qmin_bkg, qmax_bkg]
-            fQDDR.FixParameter(4, 1.0);
-            fQDDR.SetRange(qmin_bkg, qmax_bkg);
-            Cq_avg->Fit(&fQDDR, "R0Q"); // R=range, 0=don't draw, Q=quiet
+            fQD.FixParameter(4, 1.0);
+            fQD.SetRange(qmin_bkg, qmax_bkg);
+            Cq_avg->Fit(&fQD, "R0Q"); // R=range, 0=don't draw, Q=quiet
 
             // Step 2: Full signal fit — release lambda, use full range
-            fQDDR.ReleaseParameter(4);
-            fQDDR.SetRange(qmin, qmax);
+            fQD.ReleaseParameter(4);
+            fQD.SetRange(qmin, qmax);
 
-            // and used "R" (no "S"), which left rFQDR unpopulated.
-            TFitResultPtr rQDDR = Cq_avg->Fit(&fQDDR, "RS");
+            TFitResultPtr rQD = Cq_avg->Fit(&fQD, "RS");
 
             // Read chi2 and ndf from the stored fit result (consistent source)
-            double chi2 = rQDDR->Chi2();
-            double ndf  = rQDDR->Ndf();
+            double chi2 = rQD->Chi2();
+            double ndf  = rQD->Ndf();
 
             // --- Canvas & drawing ---
             TCanvas* c = new TCanvas(Form("c_%d_%d", iM, iKt), "", 700, 700);
@@ -167,9 +166,9 @@ void fit_DR_quadratic()
 
             Cq_avg->Draw("E1");
 
-            fQDDR.SetLineColor(kRed);
-            fQDDR.SetLineWidth(1);
-            fQDDR.Draw("SAME");
+            fQD.SetLineColor(kRed);
+            fQD.SetLineWidth(1);
+            fQD.Draw("SAME");
 
             TLatex t;
             t.SetNDC();
@@ -192,15 +191,15 @@ void fit_DR_quadratic()
             leg.SetBorderSize(0);
             leg.SetTextSize(0.035);
             leg.AddEntry(Cq_avg, "C(q)", "lep");
-            leg.AddEntry(&fQDDR, "SR with quad bkg", "l");
+            leg.AddEntry(&fQD, "SR with quad bkg", "l");
             leg.Draw();
 
             DrawCMSHeavyIonLabel(); //
 
             c->Update();
             c->SaveAs(Form(
-                "results_DR_quadratic/DR_sig%.2fto%.2f_bkg%.2fto%.2f/"
-                "DR_bkg%.2fto%.2f_sig%.2fto%.2f_m%d_kT%d.pdf",
+                "results_SR_quadratic/SR_sig%.2fto%.2f_bkg%.2fto%.2f/"
+                "SR_bkg%.2fto%.2f_sig%.2fto%.2f_m%d_kT%d.pdf",
                 qmin, qmax, qmin_bkg, qmax_bkg,
                 qmin, qmax, qmin_bkg, qmax_bkg,
                 iM, iKt));
@@ -208,18 +207,18 @@ void fit_DR_quadratic()
             delete c;
 
             // Extract fit parameters
-            double N      = fQDDR.GetParameter(0);
-            double Nerr   = fQDDR.GetParError(0);
-            double d_par  = fQDDR.GetParameter(1);
-            double e_par  = fQDDR.GetParameter(2);
-            double R      = fQDDR.GetParameter(3);
-            double Rerr   = fQDDR.GetParError(3);
-            double lambda = fQDDR.GetParameter(4);
-            double lamerr = fQDDR.GetParError(4);
+            double N      = fQD.GetParameter(0);
+            double Nerr   = fQD.GetParError(0);
+            double d_par  = fQD.GetParameter(1);
+            double e_par  = fQD.GetParameter(2);
+            double R      = fQD.GetParameter(3);
+            double Rerr   = fQD.GetParError(3);
+            double lambda = fQD.GetParameter(4);
+            double lamerr = fQD.GetParError(4);
 
             // p[0]=N, p[1]=d (linear), p[2]=e (quadratic), p[3]=R, p[4]=lambda
             std::cout << Form(
-                "  SGDR: chi2/ndf=%.2f  N=%.3f  d=%.4f  e=%.4f  R=%.3f  lambda=%.3f\n",
+                "  SG: chi2/ndf=%.2f  N=%.3f  d=%.4f  e=%.4f  R=%.3f  lambda=%.3f\n",
                 chi2 / ndf, N, d_par, e_par, R, lambda);
 
             fout << iM    << "," << iKt   << ","
