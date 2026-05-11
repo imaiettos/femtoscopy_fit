@@ -95,7 +95,7 @@ void fit_DR_quadratic()
          << "Exp_chi2,Exp_ndf\n";
 
     // FIX 4: fhist will be explicitly closed at the end
-    TFile* fhist = TFile::Open("/Users/isabelamaiettosilverio/Documents/root/Femtoscopy_UPC_analysis/files/Cq_pT0p2.root", "READ");
+    TFile* fhist = TFile::Open("Cq_pT0p2.root", "READ");
     if (!fhist || fhist->IsZombie()) {
         std::cerr << "Cannot open Cq_pT0p2.root\n";
         return;
@@ -119,7 +119,6 @@ void fit_DR_quadratic()
             }
             Cq_avg->SetDirectory(nullptr); // detach from file
 
-            // FIX 6: Construct TF1 with the full signal range upfront;
             // SetRange is used to restrict it during each fit step.
             TF1 fQDDR("fQDDR", QUAD_expSource, qmin, qmax, 5);
 
@@ -141,11 +140,11 @@ void fit_DR_quadratic()
             fQDDR.SetRange(qmin, qmax);
 
             // and used "R" (no "S"), which left rFQDR unpopulated.
-            TFitResultPtr rFQDR = Cq_avg->Fit(&fQDDR, "RS");
+            TFitResultPtr rQDDR = Cq_avg->Fit(&fQDDR, "RS");
 
             // Read chi2 and ndf from the stored fit result (consistent source)
-            double chi2 = rFQDR->Chi2();
-            double ndf  = rFQDR->Ndf();
+            double chi2 = rQDDR->Chi2();
+            double ndf  = rQDDR->Ndf();
 
             // --- Canvas & drawing ---
             TCanvas* c = new TCanvas(Form("c_%d_%d", iM, iKt), "", 700, 700);
@@ -167,7 +166,6 @@ void fit_DR_quadratic()
             Cq_avg->GetYaxis()->SetTitleSize(0.05);
             Cq_avg->GetYaxis()->SetLabelSize(0.045);
 
-            // FIX 9: Draw only once (was called twice before)
             Cq_avg->Draw("E1");
 
             fQDDR.SetLineColor(kRed);
@@ -198,7 +196,7 @@ void fit_DR_quadratic()
             leg.AddEntry(&fQDDR, "SR with quad bkg", "l");
             leg.Draw();
 
-            DrawCMSHeavyIonLabel(); // FIX 12: no dummy arguments needed
+            DrawCMSHeavyIonLabel(); //
 
             c->Update();
             c->SaveAs(Form(
