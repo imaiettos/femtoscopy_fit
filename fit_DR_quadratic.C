@@ -94,7 +94,6 @@ void fit_DR_quadratic()
          << "Exp_N,Exp_N_err,Exp_R,Exp_R_err,Exp_lambda,Exp_lambda_err,"
          << "Exp_chi2,Exp_ndf\n";
 
-    // FIX 4: fhist will be explicitly closed at the end
     TFile* fhist = TFile::Open("Cq_pT0p2.root", "READ");
     if (!fhist || fhist->IsZombie()) {
         std::cerr << "Cannot open Cq_pT0p2.root\n";
